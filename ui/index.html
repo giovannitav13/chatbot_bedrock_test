@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pizzeria Futuristica Chatbot 🍕</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, sans-serif;
+      background: linear-gradient(135deg, #f8fafc, #e0f2fe);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100vh;
+    }
+
+    header {
+      width: 100%;
+      background: #0066cc;
+      color: white;
+      padding: 16px;
+      text-align: center;
+      font-size: 1.4em;
+      font-weight: 600;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    #chat-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 700px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      margin: 24px;
+      overflow: hidden;
+    }
+
+    #chat-box {
+      padding: 20px;
+      overflow-y: auto;
+      flex: 1;
+      background: #f9fafb;
+    }
+
+    .message {
+      max-width: 80%;
+      padding: 10px 16px;
+      border-radius: 16px;
+      margin: 8px 0;
+      line-height: 1.5;
+      word-wrap: break-word;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .user {
+      align-self: flex-end;
+      background: #0066cc;
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+
+    .bot {
+      align-self: flex-start;
+      background: #e5e7eb;
+      color: #111827;
+      border-bottom-left-radius: 4px;
+    }
+
+    #input-area {
+      display: flex;
+      border-top: 1px solid #e5e7eb;
+      background: #f9fafb;
+      padding: 12px;
+    }
+
+    #question {
+      flex: 1;
+      padding: 10px 14px;
+      font-size: 16px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    #question:focus {
+      border-color: #0066cc;
+    }
+
+    #send-btn {
+      margin-left: 10px;
+      background: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+
+    #send-btn:hover {
+      background: #004999;
+    }
+
+    footer {
+      text-align: center;
+      color: #6b7280;
+      font-size: 0.9em;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>🍕 Pizzeria Futuristica Chatbot</header>
+
+  <div id="chat-container">
+    <div id="chat-box">
+      <div class="message bot">
+        Benvenuto alla <b>Pizzeria Futuristica</b>!  
+        Chiedimi qualcosa su Ciccio MastroPizza o sulle sue pizze straordinarie.
+      </div>
+    </div>
+
+    <div id="input-area">
+      <input id="question" type="text" placeholder="Scrivi la tua domanda..." />
+      <button id="send-btn">Invia</button>
+    </div>
+  </div>
+
+  <footer>Powered by AWS Bedrock • Demo Project</footer>
+
+  <script>
+    const API_URL = "https://4nhbyratqiegv2nmetjrlaj3xa0uqxod.lambda-url.us-east-1.on.aws/";
+    const API_KEY = "Test_CHAT_bot_!!Test_CHAT_bot_!!";
+
+    const chatBox = document.getElementById("chat-box");
+    const input = document.getElementById("question");
+    const sendBtn = document.getElementById("send-btn");
+
+    async function sendMessage() {
+      const question = input.value.trim();
+      if (!question) return;
+
+      appendMessage("user", question);
+      input.value = "";
+      appendMessage("bot", "💭 Sto pensando...");
+
+      try {
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": API_KEY
+          },
+          body: JSON.stringify({ question })
+        });
+
+        const data = await res.json();
+        updateLastBotMessage(data.answer || "❌ Non ho trovato informazioni su questo.");
+      } catch (err) {
+        console.error(err);
+        updateLastBotMessage("⚠️ Errore di connessione con il server.");
+      }
+    }
+
+    function appendMessage(sender, text) {
+      const msg = document.createElement("div");
+      msg.className = `message ${sender}`;
+      msg.innerHTML = (sender === "user" ? text : text);
+      chatBox.appendChild(msg);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function updateLastBotMessage(newText) {
+      const messages = document.querySelectorAll(".bot");
+      const last = messages[messages.length - 1];
+      if (last) last.innerHTML = newText;
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+    input.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
+  </script>
+</body>
+</html>
